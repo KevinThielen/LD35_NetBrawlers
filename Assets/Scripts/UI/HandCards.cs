@@ -9,7 +9,6 @@ public class HandCards : MonoBehaviour {
 	const float OFFSET = 10.0f;
 		
     Player player;
-	int numberOfCards = 0;
     
 	
 	GameObject[] handCards;
@@ -29,19 +28,18 @@ public class HandCards : MonoBehaviour {
 			handCards[i].transform.SetParent(transform, false);
 			handCards[i].transform.position = new Vector3(START_POS + i * (OFFSET+CARD_WIDTH), 60.0f, 5.0f);
 			handCards[i].SetActive(false);
+			handCards[i].GetComponentInChildren<Card>().HandIndex = i;
 		}
-		numberOfCards = 0;
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		int currentNumberOfCards = player.CardsInHand;
-		if(numberOfCards != currentNumberOfCards)
-		{
-			int diff = currentNumberOfCards - numberOfCards;
-			handCards[numberOfCards+diff - 1].SetActive(true);
-			
-			numberOfCards = currentNumberOfCards;		
+		int numberOfCards = player.CardsInHand;
+		for(int i = 0; i<Game.MAX_HANDCARDS; i++) {
+			if(i < numberOfCards)
+				handCards[i].SetActive(true);
+			else 
+				handCards[i].SetActive(false);
 		}
 	}
 }

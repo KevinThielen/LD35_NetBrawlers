@@ -3,11 +3,19 @@
 
 public class Card : MonoBehaviour {
 
-	public ICard card;
+    int index;
+	Game game;
+	Player player;
+	
+	public int HandIndex {
+		get { return index;  }
+		set { index = value; }
+	}
 	
 	// Use this for initialization
 	void Start () {
-	
+		game = GameObject.FindGameObjectWithTag("Game").GetComponentInChildren<Game>();
+		player = GameObject.FindGameObjectWithTag("Player").GetComponentInChildren<Player>();
 	}
 	
 	// Update is called once per frame
@@ -20,12 +28,12 @@ public class Card : MonoBehaviour {
 	}
 	
 	void Action() {
-		card.Action();
+		player.PlayCard(index);
 	}
 	
 	public void OnMouseDown()
 	{
-		if(card != null)
+		if(game.CurrentPlayer == player)
 			Action();
 	}
 }

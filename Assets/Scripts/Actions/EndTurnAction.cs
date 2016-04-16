@@ -9,7 +9,9 @@ public class EndTurnAction : IAction {
     
     public override bool Execute(Game game) 
     {
+        if(game.WaitForAction)
+            return false;
         game.ChangeCurrentPlayer();
-        return true;
+            return true;
     }
 }
