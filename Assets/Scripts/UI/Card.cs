@@ -1,11 +1,19 @@
 ﻿using UnityEngine;
-
+using UnityEngine.UI;
 
 public class Card : MonoBehaviour {
 
+	public Text cardName;
+	public Text cardCost;
+	public Text requiredForm;
+	public Text transforms;
+	public Text description;
+	
     int index;
 	Game game;
 	Player player;
+	
+	
 	
 	public int HandIndex {
 		get { return index;  }
@@ -30,7 +38,13 @@ public class Card : MonoBehaviour {
 	void Action() {
 		player.PlayCard(index);
 	}
-	
+	public void SetCard(ICard card) {
+		cardName.text = card.Name;
+		cardCost.text = card.Cost.ToString();
+		description.text = card.Description;
+		requiredForm.text = card.RequiredForm.ToString();
+		transforms.text = card.ShiftsInto.ToString();
+	}
 	public void OnMouseDown()
 	{
 		if(game.CurrentPlayer == player)

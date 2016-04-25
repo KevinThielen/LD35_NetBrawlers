@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class Game : MonoBehaviour {
 
-	public const int MAX_HANDCARDS = 7;
+	public const int MAX_HANDCARDS = 6;
 
 	Player player;
 	Player opponent;
@@ -11,7 +11,10 @@ public class Game : MonoBehaviour {
 	int turnCounter = 0;
 	bool waitForAction;
 	Player currentPlayer;
+	bool gameOver;
+	float gameOverTimer;
 	
+	bool initialized = false;
 	//   GETTER / SETTER
 	public Player CurrentPlayer {
 		get { return currentPlayer; }
@@ -33,7 +36,7 @@ public class Game : MonoBehaviour {
 		if(this.player == player)
 			return opponent;
 		else 
-			return player;
+			return this.player;
 	}
 
 	void Start () {
@@ -54,25 +57,65 @@ public class Game : MonoBehaviour {
 		else {
 			Debug.Log("Opponent GameObject not found!");
 		}
-		
+		initialized = false;
+
+	}
+	
+	void Reset() {
 		actionStack = new Stack<IAction>();
-		
+		turnCounter = 0;
+	initialized = true;
+		gameOverTimer = 3.0f;
+		gameOver = false;
+		player.Reset();
+		opponent.Reset();
 		StartGame();
+		player.AP = 5;
+	    opponent.AP = 5;
 	}
 	
 	void StartGame() {
 		actionStack.Clear();
+		waitForAction = false;
 		//set deck for both players 
 		Stack<ICard> deck = new Stack<ICard>();
-		for(int i = 0; i<30; i++)
-			deck.Push(CardFactory.Instance.getCard("SwordAttack"));
+		for(int i = 0; i<30; i++) {
+			deck.Push(CardFactory.Instance.getCard("Tail Whip"));
+		    deck.Push(CardFactory.Instance.getCard("Speardash"));
+			deck.Push(CardFactory.Instance.getCard("Slash"));
+			deck.Push(CardFactory.Instance.getCard("FlyingPunch"));
+		    deck.Push(CardFactory.Instance.getCard("Blast Punch"));
+			deck.Push(CardFactory.Instance.getCard("Serious Edition: Serious Punch"));
+		    deck.Push(CardFactory.Instance.getCard("Blast Punch"));
+			deck.Push(CardFactory.Instance.getCard("Fireblast"));
+			deck.Push(CardFactory.Instance.getCard("Pierce Shot"));
+			deck.Push(CardFactory.Instance.getCard("Yellowblast"));
+			deck.Push(CardFactory.Instance.getCard("BOOM"));
+			deck.Push(CardFactory.Instance.getCard("Blast"));
+			deck.Push(CardFactory.Instance.getCard("Dash Attack"));
+		}
 		player.SetDeck(deck);
+		player.Form = EForm.RED;
 		
 		deck = new Stack<ICard>();
-		for(int i = 0; i<30; i++)
-			deck.Push(CardFactory.Instance.getCard("SwordAttack"));
+		for(int i = 0; i<30; i++) {
+			deck.Push(CardFactory.Instance.getCard("Tail Whip"));
+		    deck.Push(CardFactory.Instance.getCard("Speardash"));
+			deck.Push(CardFactory.Instance.getCard("Slash"));
+			deck.Push(CardFactory.Instance.getCard("FlyingPunch"));
+		    deck.Push(CardFactory.Instance.getCard("Blast Punch"));
+			deck.Push(CardFactory.Instance.getCard("Serious Edition: Serious Punch"));
+		    deck.Push(CardFactory.Instance.getCard("Blast Punch"));
+			deck.Push(CardFactory.Instance.getCard("Fireblast"));
+			deck.Push(CardFactory.Instance.getCard("Pierce Shot"));
+			deck.Push(CardFactory.Instance.getCard("Yellowblast"));
+			deck.Push(CardFactory.Instance.getCard("BOOM"));
+			deck.Push(CardFactory.Instance.getCard("Blast"));
+			deck.Push(CardFactory.Instance.getCard("Dash Attack"));
+			
+		}
 		opponent.SetDeck(deck);
-/*	
+	    opponent.Form = EForm.YELLOW;
 		Random.InitState(System.Environment.TickCount);
 		
 		int firstPlayer = Random.Range(0, 2); 
@@ -80,8 +123,7 @@ public class Game : MonoBehaviour {
 			currentPlayer = player;
 		else 
 			currentPlayer = opponent;
-			*/
-		currentPlayer = player;
+			
 		for(int i = 0; i<5; i++)			
 			actionStack.Push(new DrawCardAction());
 			
@@ -95,37 +137,85 @@ public class Game : MonoBehaviour {
 	
     void StartTurn() {
 	   WaitForAction = false;
+	   currentPlayer.AP += 3;
 	   turnCounter++;
-	   Debug.Log("Start Turn: "+turnCounter);
 	 
 	 // Turn Sequence: Draw a Card -> Select Actions -> Execute Actions -> End Turn
-	   actionStack.Push(new EndTurnAction());
-	  if(currentPlayer != opponent)
+	  actionStack.Push(new EndTurnAction());
+	   actionStack.Push(new PlayAnimation("idle"));
+	   actionStack.Push(new  RunBack(1, 10));
+	   actionStack.Push(new PlayAnimation("run"));
+
+	  if(currentPlayer == player) {
+		 currentPlayer.ShowUI(); 
+	  } 
 	   actionStack.Push(new WaitForAction());
 	   actionStack.Push(new DrawCardAction());
     }
 	public void PlayCards(Player player, Stack<ICard> playedCards)
 	{
-		if(waitForAction && player == currentPlayer)
+		if(waitForAction)
 		{
+			EForm predictedForm = CurrentPlayer.Form;
 			//validate played cards
 			foreach(ICard card in playedCards) {
-				foreach(IAction action in card.Actions())
-				actionStack.Push(action);
-			}
-			
+				if(CurrentPlayer.AP >= card.Cost && (card.RequiredForm == EForm.NONE || predictedForm == card.RequiredForm)) {
+					foreach(IAction action in card.Actions()) {
+						actionStack.Push(action);
+					}
+						if(card.ShiftsInto != EForm.NONE)
+							predictedForm = card.ShiftsInto;
+						
+						CurrentPlayer.AP -= card.Cost;
+				}
+			}	
 			actionStack.Push(new ExecuteTurn());
 		}
 	}
+	public void PlayAudio(string name) {
+		GetComponent<AudioSource>().PlayOneShot(AudioDatabase.Instance.getAudio(name), 0.7f);
+	}
 	
+	void checkWinCondition() {
+		if(player.Health <= 0)
+		{
+			Debug.Log("You LosT");
+
+			gameOver = true;
+		}
+		else if (opponent.Health <= 0)
+		{
+			Debug.Log("You Won");
+		
+			gameOver = true;
+		}
+	}
 	public void ChangeCurrentPlayer() {
+		currentPlayer.PutForeground(false);
 		if(currentPlayer == player)
 			currentPlayer = opponent;
 		else
 			currentPlayer = player;
+			
+		currentPlayer.PutForeground(true);
 	}
 	// Update is called once per frame
-	void Update () {		
+	void FixedUpdate () {		
+		
+		if(!initialized)
+			Reset();
+			
+		if(gameOver) {
+			gameOverTimer -= Time.deltaTime;
+			if(gameOverTimer <= 0)
+				Reset();
+			return;
+		}
+		else 
+		checkWinCondition();
+		
+		if(waitForAction && currentPlayer == opponent)
+	    	currentPlayer.AIMove();
 		if(actionStack.Count > 0) {
 			if(actionStack.Peek().Execute(this)) {
 				actionStack.Pop();

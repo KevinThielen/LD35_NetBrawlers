@@ -4,8 +4,8 @@ using System.Collections.Generic;
 public class HandCards : MonoBehaviour {
 	
 	public GameObject cardPrefab;
-	const float START_POS = 100.0f;
-	const float CARD_WIDTH = 100.0f;
+	const float START_POS = 200.0f;
+	const float CARD_WIDTH = 200.0f;
 	const float OFFSET = 10.0f;
 		
     Player player;
@@ -26,7 +26,7 @@ public class HandCards : MonoBehaviour {
 		for(int i = 0; i<maxCardsInHand; i++) {
 			handCards[i] = Instantiate<GameObject>(cardPrefab);
 			handCards[i].transform.SetParent(transform, false);
-			handCards[i].transform.position = new Vector3(START_POS + i * (OFFSET+CARD_WIDTH), 60.0f, 5.0f);
+			handCards[i].transform.position = new Vector3(START_POS + i * (OFFSET+CARD_WIDTH), 150.0f, 5.0f);
 			handCards[i].SetActive(false);
 			handCards[i].GetComponentInChildren<Card>().HandIndex = i;
 		}
@@ -36,8 +36,10 @@ public class HandCards : MonoBehaviour {
 	void Update () {
 		int numberOfCards = player.CardsInHand;
 		for(int i = 0; i<Game.MAX_HANDCARDS; i++) {
-			if(i < numberOfCards)
+			if(i < numberOfCards) {
 				handCards[i].SetActive(true);
+				handCards[i].GetComponentInChildren<Card>().SetCard(player.GetCardAtIndex(i));
+			}
 			else 
 				handCards[i].SetActive(false);
 		}

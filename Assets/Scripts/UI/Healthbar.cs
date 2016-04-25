@@ -13,6 +13,6 @@ public class Healthbar : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-       image.rectTransform.sizeDelta = new Vector2(250*player.Health / Player.MAX_HEALTH, 35);
+       image.rectTransform.sizeDelta = new Vector2(260*player.Health / Player.MAX_HEALTH, 35);
 	}
 }
